@@ -147,12 +147,16 @@ login = function() {
     App.init();
   }
 }
+
+
+
+
+/// this function was added by us
 finalize = function() {
   if (!ethEnabled()) {
     alert("Please use an Ethereum-compatible browser or install an extension like MetaMask to use this dApp");
   }else{
     App.init();
-    // console.log(App)
     App.contracts.Election.deployed().then(function(instance) {
       electionInstance = instance;
       return electionInstance.candidatesCount();
@@ -161,15 +165,28 @@ finalize = function() {
       var list=[]
       for (var i = 1; i <= candidatesCount; i++) {
         await electionInstance.candidates(i).then(function(candidate) {
-          var name = candidate[1];
+          var name = candidate[1].replace('Candidate', 'Option');
   
           var voteCount = candidate[2];
           list.push({name: name, voteCount: voteCount.c[0]})
           
         });
       }
-      console.log('electionInstance>>', list)
-      return electionInstance.candidatesCount();
+      // finding option with the highest votes
+      var result = list.find(item => item.voteCount === Math.max(...list.map(o => o.voteCount)));
+
+      // update ui
+      var finalResults = $('#finalResults').val();
+      const html = `
+      <div id="finalResults">
+        <h1 class="text-center" style= "color: red">Winner Winner Chicken Dinner is ${result.name.replace('_', ' ')}!!</h1>
+      </div>
+  `;
+      // update function
+      $('#finalResults').each(function() {
+        $(this).replaceWith($(html));
+       
+      });
     })
   }
 }
